@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Input from "../../components/inputs/Input";
+import ProfilePhotoSelector from "../../components/inputs/ProfilePhotoSelector";
 
 const Signup = ({ setCurrentPage }) => {
   const [profilePic, setProfilePic] = useState(null);
