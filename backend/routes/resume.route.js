@@ -1,13 +1,18 @@
-const mongoose = require("mongoose");
+const express = require("express");
 
-const UserSchema = new mongoose.Schema(
-  {
-    name: { type: String, required: true },
-    email: {type: String, required: true , unique: true},
-    password: { type: String, required: true },
-    profileImageUrl: { type: String, default: null },
-  },
-  { timestamps: true }
-);
+const { createResume, getUserResumes, getResumeById, updateResume, deleteResume } = require("../controllers/resume.controller");
 
-module.exports = mongoose.model("User", UserSchema);
+const { protect } = require("../middlewares/auth.middleware");
+const {uploadResumeImages} = require("../controllers/uploadImages");
+ 
+const router = express.Router();
+
+// Routes
+router.post("/", protect, createResume); // Create Resume
+router.get("/", protect, getUserResumes); // Get Resumes
+router.get("/:id", protect, getResumeById); // Get Resume By ID
+router.put("/:id", protect, updateResume); // Update Resume
+router.put("/:id/upload-images", protect, uploadResumeImages); // Upload Images
+router.delete("/:id", protect, deleteResume); // Delete Resume
+
+module.exports = router;
