@@ -34,14 +34,11 @@ app.use(
   "/uploads",
   express.static(path.join(__dirname, "uploads"), {
     setHeaders: (res, path) => {
-      res.set("Access-Control-Allow-Origin", "http://localhost:5173");
+      res.set("Access-Control-Allow-Origin", process.env.CLIENT_URL);
     }
   })
-)
+);
 
 //Start server
-console.log('process.env.PORT',process.env.PORT);
-console.log('PORT:', process.env.PORT, typeof process.env.PORT);
-
-const PORT = process.env.PORT || 8000;
+const PORT = process.env.PORT;
 app.listen(PORT,()=> console.log(`Server running on port ${PORT}`));
