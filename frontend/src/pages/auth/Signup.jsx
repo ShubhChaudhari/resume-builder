@@ -1,22 +1,29 @@
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Input from "../../components/inputs/Input";
 import ProfilePhotoSelector from "../../components/inputs/ProfilePhotoSelector";
+import { API_PATHS } from "../../utils/apiPaths";
+import axiosInstance from "../../utils/axiosInstance";
+import { UserContext } from "../../context/userContext";
+import uploadImage from "../../utils/uploadImage";
+import { validateEmail } from "../../utils/helper";
 
 const Signup = ({ setCurrentPage }) => {
+  const { updateUser } = useContext(UserContext);
+  const navigate = useNavigate();
+
   const [profilePic, setProfilePic] = useState(null);
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
 
-  const navigate = useNavigate();
 
   // Handle Signup Form Submit
   const handleSignup = async (e) => {
     e.preventDefault();
 
-    let profileImgageUrl = "";
+    let profileImageUrl = "";
 
     if (!fullName) {
       setError("Please enter full name.");
@@ -36,7 +43,33 @@ const Signup = ({ setCurrentPage }) => {
 
     // Login API Call
     try {
-    } catch (error) {}
+
+      //Upload image if select
+      if(profilePic){
+        const imageUploadRes = await uploadImage(profilePic);
+        profileImageUrl = imageUploadRes.imageUrl || ''
+      }
+
+      const response = await axiosInstance.post(API_PATHS.AUTH.REGISTER,{
+        name : fullName,
+        email,
+        password,
+        profileImageUrl
+      });
+
+      const { token } = response.data;
+      if(token){
+        localStorage.setItem("token", token);
+        updateUser(response.data);
+        navigate('/dashboard');
+      }
+    } catch (error) {
+      if(error.response && error.response.data.message){
+        setError(error.response.data.message);
+      } else {
+        setError("Something went wrong. Please try again.");
+      }
+    }
   };
   return (
     <div className="w-[90vw] md:w-[33vw] p-7 flex flex-col justify-center">
