@@ -14,6 +14,8 @@ const Dashboard = () => {
 
   const [openCreateModal, setOpenCreateModal] = useState(false);
   const [allResumes, setAllResumes] = useState(null);
+  console.log('allResumes',allResumes);
+  
 
   const fetchAllResumes = async () => {
     try {

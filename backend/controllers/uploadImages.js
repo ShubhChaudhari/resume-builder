@@ -2,6 +2,7 @@ const fs = require("fs");
 const path = require("path");
 const Resume = require("../models/resume.model");
 const upload = require("../middlewares/upload.middleware");
+const User = require("../models/user.model")
 
 const uploadResumeImages = async (req, res) => {
   try {
@@ -42,6 +43,11 @@ const uploadResumeImages = async (req, res) => {
         }
 
         resume.profileInfo.profilePreviewUrl = `${baseUrl}/uploads/${newProfileImage.filename}`;
+         
+        // ✅ Update user.profileImageUrl at the same time
+        await User.findByIdAndUpdate(req.user._id, {
+          profileImageUrl: `${baseUrl}/uploads/${newProfileImage.filename}`,
+        });
       }
 
       await resume.save();

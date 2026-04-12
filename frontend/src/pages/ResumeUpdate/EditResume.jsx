@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   LuArrowLeft,
@@ -24,9 +24,19 @@ import ProjectDetailsForm from "./Forms/ProjectDetailsForm";
 import CertifictionInfoForm from "./Forms/CertifictionInfoForm";
 import AdditionalInfoForm from "./Forms/AdditionalInfoForm";
 import RenderResume from "../../components/ResumeTemplates/RenderResume";
+import {
+  captureElementAsImage,
+  convertDomImagesToBase64,
+  dataURLtoFile,
+  fixTailwindColors,
+} from "../../utils/helper";
+import Modal from "../../components/Modal";
+import ThemeSelector from "./ThemeSelector";
+import { UserContext } from "../../context/userContext";
 
 const EditResume = () => {
   const { resumeId } = useParams();
+  const { updateProfileImage } = useContext(UserContext);
   const resumeRef = useRef(null);
   const resumeDownloadRef = useRef(null);
   const navigate = useNavigate();
@@ -115,167 +125,189 @@ const EditResume = () => {
   });
 
   // Validate Inputs
-const validateAndNext = (e) => {
-  if (e) e.preventDefault();
+  const validateAndNext = (e) => {
+    if (e) e.preventDefault();
 
-  const errors = [];
+    const errors = [];
 
-  switch (currentPage) {
-    case "profile-info": {
-      const { fullName, designation, summary } = resumeData.profileInfo || {};
+    switch (currentPage) {
+      case "profile-info": {
+        const { fullName, designation, summary } = resumeData.profileInfo || {};
 
-      if (!fullName?.trim()) errors.push("Full Name is required");
-      if (!designation?.trim()) errors.push("Designation is required");
-      if (!summary?.trim()) errors.push("Summary is required");
-      break;
-    }
+        if (!fullName?.trim()) errors.push("Full Name is required");
+        if (!designation?.trim()) errors.push("Designation is required");
+        if (!summary?.trim()) errors.push("Summary is required");
+        break;
+      }
 
-    case "contact-info": {
-      const { email, phone } = resumeData.contactInfo || {};
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      case "contact-info": {
+        const { email, phone } = resumeData.contactInfo || {};
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-      if (!email?.trim() || !emailRegex.test(email)) errors.push("Valid email is required");
-      if (!phone?.trim() || phone.length < 10) errors.push("Valid phone number is required");
+        if (!email?.trim() || !emailRegex.test(email))
+          errors.push("Valid email is required");
+        if (!phone?.trim() || phone.length < 10)
+          errors.push("Valid phone number is required");
 
-      break;
-    }
+        break;
+      }
 
-    // work-experience
-    case "work-experience": {
-      const workE = resumeData.workExperience || [];
-      workE.forEach(
-        ({ company, role, startDate, endDate }, index) => {
-          if (!company?.trim()) errors.push(`Company is required in experience ${index + 1}`);
-          if (!role?.trim()) errors.push(`Role is required in experience ${index + 1}`);
-          if (!startDate || endDate) errors.push(`Start and End dates are required in experience ${index + 1}`);
+      // work-experience
+      case "work-experience": {
+        const workE = resumeData.workExperience || [];
+        workE.forEach(({ company, role, startDate, endDate }, index) => {
+          if (!company?.trim())
+            errors.push(`Company is required in experience ${index + 1}`);
+          if (!role?.trim())
+            errors.push(`Role is required in experience ${index + 1}`);
+          if (!startDate || endDate)
+            errors.push(
+              `Start and End dates are required in experience ${index + 1}`,
+            );
+        });
+        break;
+      }
+
+      // education-info
+      case "education-info": {
+        const edu = resumeData.education || [];
+        edu.forEach(({ degree, institution, startDate, endDate }, index) => {
+          if (!degree?.trim())
+            errors.push(`Degree is required in education ${index + 1})`);
+          if (!institution?.trim())
+            errors.push(`Institution is required in education ${index + 1})`);
+          if (!startDate || endDate)
+            errors.push(
+              `Start and End dates are required in education ${index + 1}`,
+            );
+        });
+        break;
+      }
+
+      // skills
+      case "skills": {
+        const skills = resumeData.skills || [];
+        skills.forEach(({ name, progress }, index) => {
+          if (!name?.trim())
+            errors.push(`Skill name is required in skill ${index + 1})`);
+          if (!progress?.trim())
+            errors.push(`Progress name is required in skill ${index + 1})`);
+        });
+        break;
+      }
+
+      // projects
+      case "projects": {
+        const projects = resumeData.projects || [];
+        projects.forEach(({ title, description }, index) => {
+          if (!title?.trim())
+            errors.push(`Project title is required in project ${index + 1})`);
+          if (!description?.trim())
+            errors.push(
+              `Project description is required in project ${index + 1})`,
+            );
+        });
+        break;
+      }
+
+      // certifications
+      case "certifications": {
+        const certs = resumeData.certifications || [];
+        certs.forEach(({ title, issuer }, index) => {
+          if (!title?.trim())
+            errors.push(
+              `Certification title is required in certification ${index + 1})`,
+            );
+          if (!issuer?.trim())
+            errors.push(`Certification issuer is required ${index + 1})`);
+        });
+        break;
+      }
+
+      // additionalInfo
+      case "additionalInfo": {
+        if (
+          resumeData.languages.length === 0 ||
+          !resumeData.languages[0].name?.trim()
+        ) {
+          errors.push(`At least one language is required`);
         }
-      );
-      break;
-    }
 
-    // education-info
-    case "education-info": {
-      const edu = resumeData.education || [];
-      edu.forEach(
-        ({ degree, institution, startDate, endDate }, index) => {
-        if (!degree?.trim()) errors.push(`Degree is required in education ${index + 1})`);
-        if (!institution?.trim()) errors.push(`Institution is required in education ${index + 1})`);
-        if (!startDate || endDate) errors.push(`Start and End dates are required in education ${index + 1}`);
-      });
-      break;
-    }
-
-    // skills
-    case "skills": {
-      const skills = resumeData.skills || [];
-      skills.forEach(
-        ({ name, progress }, index) => {
-        if (!name?.trim()) errors.push(`Skill name is required in skill ${index + 1})`);
-        if (!progress?.trim()) errors.push(`Progress name is required in skill ${index + 1})`);
-      });
-      break;
-    }
-
-    // projects
-    case "projects": {
-      const projects = resumeData.projects || [];
-      projects.forEach(
-        ({title,description}, index) => {
-        if (!title?.trim()) errors.push(`Project title is required in project ${index + 1})`);
-        if (!description?.trim()) errors.push(`Project description is required in project ${index + 1})`);
-      });
-      break;
-    }
-
-    // certifications
-    case "certifications": {
-      const certs = resumeData.certifications || [];
-      certs.forEach(
-        ({title, issuer}, index) => {
-        if (!title?.trim()) errors.push(`Certification title is required in certification ${index + 1})`);
-        if (!issuer?.trim()) errors.push(`Certification issuer is required ${index + 1})`);
-      });
-      break;
-    }
-
-    // additionalInfo
-    case "additionalInfo": {
-      if(resumeData.languages.length === 0 || !resumeData.languages[0].name?.trim()){
-        errors.push(`At least one language is required`);
+        if (
+          resumeData.interests.length === 0 ||
+          !resumeData.interests[0].name?.trim()
+        ) {
+          errors.push(`At least one interests is required`);
+        }
+        break;
       }
-      
-      if(resumeData.interests.length === 0 || !resumeData.interests[0].name?.trim()){
-        errors.push(`At least one interests is required`)
-      }
-      break;
+
+      default:
+        break;
     }
 
-    default:
-      break;
-  }
+    if (errors.length > 0) {
+      setErrorMsg(errors.join(", ")); // show first error
+      return;
+    }
 
-  if (errors.length > 0) {
-    setErrorMsg(errors.join(', ')); // show first error
-    return;
-  }
-
-  setErrorMsg("");
-  goToNextStep();
-};
+    setErrorMsg("");
+    goToNextStep();
+  };
 
   // Function to navigate to the next page
-const goToNextStep = () => {
-  const pages = [
-    "profile-info",
-    "contact-info",
-    "work-experience",
-    "education-info",
-    "skills",
-    "projects",
-    "certifications",
-    "additionalInfo",
-  ];
+  const goToNextStep = () => {
+    const pages = [
+      "profile-info",
+      "contact-info",
+      "work-experience",
+      "education-info",
+      "skills",
+      "projects",
+      "certifications",
+      "additionalInfo",
+    ];
 
-  if (currentPage === "additionalInfo") setOpenPreviewModal(true);
+    if (currentPage === "additionalInfo") setOpenPreviewModal(true);
 
-  const currentIndex = pages.indexOf(currentPage);
-  if (currentIndex !== -1 && currentIndex < pages.length - 1) {
-    const nextIndex = currentIndex + 1;
-    setCurrentPage(pages[nextIndex]);
+    const currentIndex = pages.indexOf(currentPage);
+    if (currentIndex !== -1 && currentIndex < pages.length - 1) {
+      const nextIndex = currentIndex + 1;
+      setCurrentPage(pages[nextIndex]);
 
-    // Set progress as percentage
-    const percent = Math.round((nextIndex / (pages.length - 1)) * 100);
-    setProgress(percent);
-    window.scrollTo({top: 0,behavior: "smooth",});
-  }
-};
+      // Set progress as percentage
+      const percent = Math.round((nextIndex / (pages.length - 1)) * 100);
+      setProgress(percent);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  };
 
   // Function to navigate to the previous page
-const goBack = () => {
-  const pages = [
-    "profile-info",
-    "contact-info",
-    "work-experience",
-    "education-info",
-    "skills",
-    "projects",
-    "certifications",
-    "additionalInfo",
-  ];
+  const goBack = () => {
+    const pages = [
+      "profile-info",
+      "contact-info",
+      "work-experience",
+      "education-info",
+      "skills",
+      "projects",
+      "certifications",
+      "additionalInfo",
+    ];
 
-  if (currentPage === "profile-info") navigate('/dashboard');
+    if (currentPage === "profile-info") navigate("/dashboard");
 
-  const currentIndex = pages.indexOf(currentPage);
-  if (currentIndex > 0) {
-    const prevIndex = currentIndex - 1;
-    setCurrentPage(pages[prevIndex]);
+    const currentIndex = pages.indexOf(currentPage);
+    if (currentIndex > 0) {
+      const prevIndex = currentIndex - 1;
+      setCurrentPage(pages[prevIndex]);
 
-    // Update progress
-    const percent = Math.round((prevIndex / (pages.length - 1)) * 100);
-    setProgress(percent);
-    window.scrollTo({top: 0,behavior: "smooth"});
-  }
-};
+      // Update progress
+      const percent = Math.round((prevIndex / (pages.length - 1)) * 100);
+      setProgress(percent);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  };
 
   // Render form based on step
   const renderForm = () => {
@@ -359,7 +391,9 @@ const goBack = () => {
               updateArrayItem("certifications", index, key, value)
             }
             addArrayItem={(newItem) => addArrayItem("certifications", newItem)}
-            removeArrayItem={(index) => removeArrayItem("certifications", index)}
+            removeArrayItem={(index) =>
+              removeArrayItem("certifications", index)
+            }
           />
         );
 
@@ -372,7 +406,9 @@ const goBack = () => {
               updateArrayItem(section, index, key, value)
             }
             addArrayItem={(section, newItem) => addArrayItem(section, newItem)}
-            removeArrayItem={(section, index) => removeArrayItem(section, index)}
+            removeArrayItem={(section, index) =>
+              removeArrayItem(section, index)
+            }
           />
         );
 
@@ -397,8 +433,8 @@ const goBack = () => {
     setResumeData((prev) => {
       const updatedArray = [...prev[section]];
 
-      if(key === null) {
-        updatedArray[index] = value; 
+      if (key === null) {
+        updatedArray[index] = value;
       } else {
         updatedArray[index] = {
           ...updatedArray[index],
@@ -469,41 +505,95 @@ const goBack = () => {
   // Upload thumbnail and resume profile image
   const uploadResumeImages = async () => {
     try {
-      // API call here
+      setIsLoading(true);
+
+      fixTailwindColors(resumeRef.current);
+
+      // 🔥 WAIT for images before capture
+      await convertDomImagesToBase64(resumeRef.current);
+
+      const imageDataUrl = await captureElementAsImage(resumeRef.current);
+      const thumbnailFile = dataURLtoFile(
+        imageDataUrl,
+        `resume-${resumeId}.png`,
+      );
+
+      const profileImageFile = resumeData?.profileInfo?.profileImg || null;
+      const formData = new FormData();
+
+      if (profileImageFile) formData.append("profileImage", profileImageFile);
+      if (thumbnailFile) formData.append("thumbnail", thumbnailFile);
+
+      const uploadResponse = await axiosInstance.put(
+        API_PATHS.RESUME.UPLOAD_IMAGES(resumeId),
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        },
+      );
+
+      const { thumbnailLink, profilePreviewUrl } = uploadResponse.data;
+
+      
+      // Call second API
+      await updateResumeDetails(thumbnailLink, profilePreviewUrl);
+      
+      if (profileImageFile instanceof File && profilePreviewUrl) {
+        updateProfileImage(profilePreviewUrl);
+      }
+      
+      toast.success("Resume Updated Successfully!");
+      navigate("/dashboard");
     } catch (error) {
       console.error("Error uploading images:", error);
+      toast.error("Failed to upload images");
+    } finally {
+      setIsLoading(false);
     }
   };
 
   // Update resume details
   const updateResumeDetails = async (thumbnailLink, profilePreviewUrl) => {
     try {
-      await axiosInstance.put(API_PATHS.RESUME.UPDATE(id), {
-        ...resumeData,
-        thumbnailLink,
-        profileInfo: {
-          ...resumeData.profileInfo,
-          profilePreviewUrl,
+      setIsLoading(true);
+
+      const response = await axiosInstance.put(
+        API_PATHS.RESUME.UPDATE(resumeId),
+        {
+          ...resumeData,
+          thumbnailLink: thumbnailLink || "",
+          profileInfo: {
+            ...resumeData.profileInfo,
+            profilePreviewUrl: profilePreviewUrl || "",
+          },
         },
-      });
-    } catch (error) {
-      console.error("Error updating resume:", error);
+      );
+    } catch (err) {
+      console.error("Error capturing image:", err);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   // Delete Resume
   const handleDeleteResume = async () => {
     try {
-      await axiosInstance.delete(API_PATHS.RESUME.DELETE(id));
-      navigate("/");
+      setIsLoading(true);
+      await axiosInstance.delete(API_PATHS.RESUME.DELETE(resumeId));
+      toast.success("Resume Deleted Successfully");
+      navigate("/dashboard");
     } catch (error) {
       console.error("Error deleting resume:", error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   // Download resume
   const reactToPrintFn = useReactToPrint({
-    content: () => resumeDownloadRef.current,
+    contentRef: resumeDownloadRef,
   });
 
   // Function to update baseWidth based on the resume container size
@@ -564,7 +654,7 @@ const goBack = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          {/* <div className="bg-white rounded-lg border border-purple-100 overflow-hidden">
+          <div className="bg-white rounded-lg border border-purple-100 overflow-hidden">
             <StepProgress progress={progress} />
 
             {renderForm()}
@@ -614,7 +704,7 @@ const goBack = () => {
                 </button>
               </div>
             </div>
-          </div> */}
+          </div>
 
           <div ref={resumeRef} className="h-[100vh]">
             {/* Resume Template */}
@@ -628,6 +718,45 @@ const goBack = () => {
           </div>
         </div>
       </div>
+
+      {/* Open Change theme modal */}
+      <Modal
+        isOpen={openThemeSelector}
+        onClose={() => setOpenThemeSelector(false)}
+        title="Change Theme"
+      >
+        <div className="w-[90vw] h-[80vh]">
+          <ThemeSelector
+            selectedTheme={resumeData?.template}
+            setSelectedTheme={(value) => {
+              setResumeData((prevState) => ({
+                ...prevState,
+                template: value || prevState.template,
+              }));
+            }}
+            resumeData={resumeData}
+            onClose={() => setOpenThemeSelector(false)}
+          />
+        </div>
+      </Modal>
+
+      <Modal
+        isOpen={openPreviewModal}
+        onClose={() => setOpenPreviewModal(false)}
+        title={resumeData.title}
+        showActionBtn
+        actionBtnText="Download"
+        actionBtnIcon={<LuDownload className="text-[16px]" />}
+        onActionClick={() => reactToPrintFn()}
+      >
+        <div ref={resumeDownloadRef} className="w-[98vw] h-[90vh]">
+          <RenderResume
+            templateId={resumeData?.template?.theme || ""}
+            resumeData={resumeData}
+            colorPalette={resumeData.template?.colorPalette || []}
+          />
+        </div>
+      </Modal>
     </DashboardLayout>
   );
 };

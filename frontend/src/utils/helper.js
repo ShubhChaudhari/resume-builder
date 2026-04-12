@@ -1,4 +1,5 @@
 import moment from 'moment';
+import html2canvas from 'html2canvas';
 
 export const validateEmail = (email) => {
   const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -78,5 +79,84 @@ export const getLightColorFromImage = (imageUrl) => {
 
 //Format year-month Eg: Mar 2025
 export const formatYearMonth = (yearMonth) => {
-  return yearMonth ? moment(yearMonth, "YYYY-MM").format("MMM YYYY"): "";
+  return yearMonth ? moment(yearMonth, "YYYY-MM").format("MMM YYYY") : "";
 }
+
+export const fixTailwindColors = (element) => {
+  const elements = element.querySelectorAll("*");
+
+  elements.forEach((el) => {
+    const style = window.getComputedStyle(el);
+
+    ["color", "backgroundColor", "borderColor"].forEach(
+      (prop) => {
+        const value = style[prop];
+
+        if (value.includes("oklch")) {
+          el.style[prop] = "#000"; // fallback
+        }
+      }
+    );
+  });
+};
+
+
+export const convertImageToBase64 = (url) => {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      canvas.width = img.width;
+      canvas.height = img.height;
+      canvas.getContext("2d").drawImage(img, 0, 0);
+      resolve(canvas.toDataURL("image/png"));
+    };
+    img.onerror = () => resolve(null); // don't block if it fails
+    img.src = url;
+  });
+};
+
+export const convertDomImagesToBase64 = async (element) => {
+  const images = Array.from(element.querySelectorAll("img"));
+
+  await Promise.all(
+    images.map(async (img) => {
+      const src = img.getAttribute("src");
+
+      // Skip if already base64 or blob
+      if (!src || src.startsWith("data:") || src.startsWith("blob:")) return;
+
+      const base64 = await convertImageToBase64(src);
+      if (base64) img.src = base64;
+    })
+  );
+};
+
+export async function captureElementAsImage(element) {
+  if (!element) throw new Error("No element provided");
+
+  const canvas = await html2canvas(element, {
+    useCORS: true,       // allow cross-origin images
+    allowTaint: false,   // don't taint canvas with unresolved images
+    scale: 1,            // use 1 for thumbnail, increase for higher quality
+  });
+  return canvas.toDataURL("image/png");
+}
+
+// Utility to convert base64 data URL to File object
+export const dataURLtoFile = (dataUrl, fileName) => {
+  const arr = dataUrl.split(",");
+  const mime = arr[0].match(/:(.*?);/)[1];
+
+  const bstr = atob(arr[1]);
+  let n = bstr.length;
+
+  const u8arr = new Uint8Array(n);
+
+  while (n--) {
+    u8arr[n] = bstr.charCodeAt(n);
+  }
+
+  return new File([u8arr], fileName, { type: mime });
+};

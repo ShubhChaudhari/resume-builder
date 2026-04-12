@@ -36,8 +36,15 @@ const UserProvider = ({ children }) => {
 
   const updateUser = (userData) => {
     setUser(userData);
-    localStorage.setItem("token",userData.token);
+    localStorage.setItem("token", userData.token);
     setLoading(false);
+  };
+
+  const updateProfileImage = (newImageUrl) => {
+    setUser((prev) => ({
+      ...prev,
+      profileImageUrl: newImageUrl,
+    }));
   };
 
   const clearUser = () => {
@@ -46,7 +53,7 @@ const UserProvider = ({ children }) => {
   };
 
   return (
-    <UserContext.Provider value={{ user, loading, updateUser, clearUser }}>
+    <UserContext.Provider value={{ user, loading, updateUser, updateProfileImage, clearUser }}>
       {children}
     </UserContext.Provider>
   );
