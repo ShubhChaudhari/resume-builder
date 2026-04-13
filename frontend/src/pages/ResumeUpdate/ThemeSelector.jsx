@@ -73,7 +73,7 @@ console.log('selectedTemplate',selectedTemplate);
 
       <div className="grid grid-cols-12 gap-5">
         <div className="col-span-12 md:col-span-5 bg-white">
-          <div className="grid grid-cols-2 gap-5 max-h-[80vh] overflow-scroll custom-scrollbar md:pr-5">
+          <div className="grid grid-cols-2 gap-5 max-h-[80vh] overflow-y-auto custom-scrollbar md:pr-5">
             {/* content */}
             {tabValue === "Templates" && 
               resumeTemplates.map((temp, index)=> (

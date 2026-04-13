@@ -160,7 +160,7 @@ const EditResume = () => {
             errors.push(`Company is required in experience ${index + 1}`);
           if (!role?.trim())
             errors.push(`Role is required in experience ${index + 1}`);
-          if (!startDate || endDate)
+          if (!startDate || !endDate)
             errors.push(
               `Start and End dates are required in experience ${index + 1}`,
             );
@@ -176,7 +176,7 @@ const EditResume = () => {
             errors.push(`Degree is required in education ${index + 1})`);
           if (!institution?.trim())
             errors.push(`Institution is required in education ${index + 1})`);
-          if (!startDate || endDate)
+          if (!startDate || !endDate)
             errors.push(
               `Start and End dates are required in education ${index + 1}`,
             );
@@ -190,7 +190,7 @@ const EditResume = () => {
         skills.forEach(({ name, progress }, index) => {
           if (!name?.trim())
             errors.push(`Skill name is required in skill ${index + 1})`);
-          if (!progress?.trim())
+          if (!progress)
             errors.push(`Progress name is required in skill ${index + 1})`);
         });
         break;
@@ -226,17 +226,12 @@ const EditResume = () => {
 
       // additionalInfo
       case "additionalInfo": {
-        if (
-          resumeData.languages.length === 0 ||
-          !resumeData.languages[0].name?.trim()
-        ) {
+        if ( resumeData.languages.length === 0 || !resumeData.languages[0].name?.trim()) {
           errors.push(`At least one language is required`);
         }
-
-        if (
-          resumeData.interests.length === 0 ||
-          !resumeData.interests[0].name?.trim()
-        ) {
+        console.log('resumeData.interests',resumeData.interests);
+        
+        if ( resumeData.interests.length === 0) {
           errors.push(`At least one interests is required`);
         }
         break;
@@ -383,7 +378,7 @@ const EditResume = () => {
           />
         );
 
-      case "certification":
+      case "certifications":
         return (
           <CertifictionInfoForm
             certificationInfo={resumeData?.certifications}
@@ -592,9 +587,30 @@ const EditResume = () => {
   };
 
   // Download resume
+  // const reactToPrintFn = useReactToPrint({
+  //   contentRef: resumeDownloadRef,
+  // });
+
   const reactToPrintFn = useReactToPrint({
-    contentRef: resumeDownloadRef,
-  });
+  contentRef: resumeDownloadRef,
+  documentTitle: resumeData?.title || "Resume",
+  pageStyle: `
+    @page {
+      size: A4;
+      margin: 0;
+    }
+    @media print {
+      body {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+      .page-break-inside-avoid {
+        page-break-inside: avoid;
+        break-inside: avoid;
+      }
+    }
+  `,
+});
 
   // Function to update baseWidth based on the resume container size
   const updateBaseWidth = () => {
@@ -740,6 +756,7 @@ const EditResume = () => {
         </div>
       </Modal>
 
+      {/* Priview and download modal */}
       <Modal
         isOpen={openPreviewModal}
         onClose={() => setOpenPreviewModal(false)}
@@ -749,7 +766,7 @@ const EditResume = () => {
         actionBtnIcon={<LuDownload className="text-[16px]" />}
         onActionClick={() => reactToPrintFn()}
       >
-        <div ref={resumeDownloadRef} className="w-[98vw] h-[90vh]">
+        <div ref={resumeDownloadRef} className="w-198.5 h-[90vh]">
           <RenderResume
             templateId={resumeData?.template?.theme || ""}
             resumeData={resumeData}

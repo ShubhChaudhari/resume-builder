@@ -19,12 +19,18 @@
 }
 
 /* Custom scrollbar styling */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(100, 100, 100, 0.4) transparent;
+}
+
+/* Chrome / Edge / Safari */
 .custom-scrollbar::-webkit-scrollbar {
   width: 4px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background-color: ☐ rgba(100, 100, 100, 0.4);
+  background-color: rgba(100, 100, 100, 0.4);
   border-radius: 10px;
 }
 
@@ -68,4 +74,24 @@
 
 .form-input {
   @apply w-full text-sm text-black outline-none bg-white border border-slate-100 px-2.5 py-3 rounded-md mt-2 md:mt-2 placeholder:text-gray-500 focus-within:border-purple-300;
+}
+
+/* Add this in your index.css */
+
+@media print {
+  .page-break-inside-avoid {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  .page-break-before {
+    page-break-before: always;
+    break-before: page;
+  }
+}
+
+/* Also apply outside print for preview */
+.page-break-inside-avoid {
+  page-break-inside: avoid;
+  break-inside: avoid;
 }
