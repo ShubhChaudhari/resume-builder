@@ -150,7 +150,7 @@ const TemplateThree = ({ resumeData, colorPalette, containerWidth }) => {
             </div>
 
             <div className="mt-5">
-              <Title text="Eduction" color={themeColors[1]} />
+              <Title text="Education" color={themeColors[1]} />
 
               {resumeData?.education.map((data, index) => (
                 <EducationInfo
@@ -225,15 +225,10 @@ const TemplateThree = ({ resumeData, colorPalette, containerWidth }) => {
           <div className="mt-4">
             <Title text="Certifications" color={themeColors[1]} />
 
-            {resumeData.certifications.map((data, index) => (
-              <CertificationInfo
-                key={`cert_${index}`}
-                title={data.title}
-                issuer={data.issuer}
-                year={data.year}
-                bgColor={themeColors[2]}
-              />
-            ))}
+            <CertificationInfo
+              certifications={resumeData.certifications}
+              bgColor={themeColors[2]}
+            />
           </div>
 
           {resumeData.interests.length > 0 && 
