@@ -19,9 +19,9 @@ import CertificationInfo from "../ResumeSections/CertificationInfo";
 
 const DEFAULT_THEME = ["#EBFDFF", "#A1F4FD", "#CEFAFE", "#00B8DB", "#4A5565"];
 
-const Title = ({ text, color }) => {
+const Title = ({ text, color, onSetCurrentPage }) => {
   return (
-    <div className="relative w-fit mb-2.5">
+    <div className="relative w-fit mb-2.5 cursor-pointer" onClick={onSetCurrentPage}>
       <span
         className="absolute bottom-0 left-0 w-full h-2 opacity-30"
         style={{ backgroundColor: color }}
@@ -32,7 +32,7 @@ const Title = ({ text, color }) => {
   );
 };
 
-const TemplateOne = ({ resumeData, colorPalette, containerWidth }) => {
+const TemplateOne = ({ resumeData, colorPalette, containerWidth, setCurrentPage }) => {
   const themeColors = colorPalette?.length > 0 ? colorPalette : DEFAULT_THEME;
 
   const resumeRef = useRef(null);
@@ -138,7 +138,7 @@ const TemplateOne = ({ resumeData, colorPalette, containerWidth }) => {
             </div>
 
             <div className="mt-5">
-              <Title text="Education" color={themeColors[1]} />
+              <Title text="Education" color={themeColors[1]} onSetCurrentPage={()=>setCurrentPage("education-info")} />
 
               {resumeData?.education.map((data, index) => (
                 <EducationInfo
@@ -151,7 +151,7 @@ const TemplateOne = ({ resumeData, colorPalette, containerWidth }) => {
             </div>
 
             <div className="mt-5">
-              <Title text="Languages" color={themeColors[1]} />
+              <Title text="Languages" color={themeColors[1]} onSetCurrentPage={()=>setCurrentPage("additionalInfo")} />
 
               <LanguageSection
                 languages={resumeData.languages}
@@ -164,14 +164,14 @@ const TemplateOne = ({ resumeData, colorPalette, containerWidth }) => {
 
         <div className="col-span-8 pt-10 mr-10 pb-5">
           <div>
-            <Title text="Professional Summary" color={themeColors[1]} />
+            <Title text="Professional Summary" color={themeColors[1]} onSetCurrentPage={()=>setCurrentPage("profile-info")} />
             <p className="text-sm font-medium">
               {resumeData.profileInfo.summary}
             </p>
           </div>
 
           <div className="mt-4">
-            <Title text="Work Experiance" color={themeColors[1]} />
+            <Title text="Work Experiance" color={themeColors[1]} onSetCurrentPage={()=>setCurrentPage("work-experience")} />
 
             {resumeData.workExperience.map((data, index) => (
               <WorkExperience
@@ -186,7 +186,7 @@ const TemplateOne = ({ resumeData, colorPalette, containerWidth }) => {
           </div>
 
           <div className="mt-4">
-            <Title text="Projects" color={themeColors[1]} />
+            <Title text="Projects" color={themeColors[1]} onSetCurrentPage={()=>setCurrentPage("projects")} />
 
             {resumeData.projects.map((data, index) => (
               <ProjectInfo
@@ -201,7 +201,7 @@ const TemplateOne = ({ resumeData, colorPalette, containerWidth }) => {
           </div>
 
           <div className="mt-4">
-            <Title text="Skills" color={themeColors[1]} />
+            <Title text="Skills" color={themeColors[1]} onSetCurrentPage={()=>setCurrentPage("")} />
 
             <SkillSection
               skills={resumeData.skills}
@@ -211,7 +211,7 @@ const TemplateOne = ({ resumeData, colorPalette, containerWidth }) => {
           </div>
 
           <div className="mt-4">
-            <Title text="Certifications" color={themeColors[1]} />
+            <Title text="Certifications" color={themeColors[1]} onSetCurrentPage={()=>setCurrentPage("certifications")} />
 
             <CertificationInfo
               certifications={resumeData.certifications}
@@ -221,7 +221,7 @@ const TemplateOne = ({ resumeData, colorPalette, containerWidth }) => {
 
           {resumeData.interests.length > 0 && 
             resumeData.interests[0] != "" && <div className="mt-4">
-            <Title text="Interests" color={themeColors[1]} />
+            <Title text="Interests" color={themeColors[1]} onSetCurrentPage={()=>setCurrentPage("additionalInfo")} />
 
             <div className="flex items-center flex-wrap gap-3 mt-4">
               {resumeData.interests.map((interest, index) => {

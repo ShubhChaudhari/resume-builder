@@ -7,6 +7,7 @@ import axiosInstance from "../../utils/axiosInstance";
 import { UserContext } from "../../context/userContext";
 import uploadImage from "../../utils/uploadImage";
 import { validateEmail } from "../../utils/helper";
+import toast from "react-hot-toast";
 
 const Signup = ({ setCurrentPage }) => {
   const { updateUser } = useContext(UserContext);
@@ -45,22 +46,23 @@ const Signup = ({ setCurrentPage }) => {
     try {
 
       //Upload image if select
-      if(profilePic){
-        const imageUploadRes = await uploadImage(profilePic);
-        profileImageUrl = imageUploadRes.imageUrl || ''
-      }
+      // if(profilePic){
+      //   const imageUploadRes = await uploadImage(profilePic);
+      //   profileImageUrl = imageUploadRes.imageUrl || ''
+      // }
 
       const response = await axiosInstance.post(API_PATHS.AUTH.REGISTER,{
         name : fullName,
         email,
         password,
-        profileImageUrl
+        // profileImageUrl
       });
 
       const { token } = response.data;
       if(token){
         localStorage.setItem("token", token);
         updateUser(response.data);
+        toast.success("Successfully Login...");
         navigate('/dashboard');
       }
     } catch (error) {
@@ -77,7 +79,7 @@ const Signup = ({ setCurrentPage }) => {
       <p className="text-xs text-slate-700 mt-[5px] mb-6">Join us today by entering your details below</p>
       <form onSubmit={handleSignup}>
 
-        <ProfilePhotoSelector image={profilePic} setImage={setProfilePic} />
+        {/* <ProfilePhotoSelector image={profilePic} setImage={setProfilePic} /> */}
 
         <div className="grid grid-cols-1 md:grid-cols-1 gap-2">
           <Input

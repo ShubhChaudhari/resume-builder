@@ -4,7 +4,7 @@ import TemplateTwo from './TemplateTwo';
 import TemplateThree from './TemplateThree';
 import TemplateFour from './TemplateFour';
 
-const RenderResume = ({ templateId, resumeData, colorPalette, containerWidth }) => {
+const RenderResume = ({ templateId, resumeData, colorPalette, containerWidth, setCurrentPage }) => {
   
   switch (templateId) {
     case "01":
@@ -13,6 +13,7 @@ const RenderResume = ({ templateId, resumeData, colorPalette, containerWidth }) 
           resumeData={resumeData}
           colorPalette={colorPalette}
           containerWidth={containerWidth}
+          setCurrentPage={setCurrentPage}
         />
       );
 

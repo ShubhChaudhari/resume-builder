@@ -730,6 +730,7 @@ const EditResume = () => {
               resumeData={resumeData}
               colorPalette={resumeData.template?.colorPalette || {}}
               containerWidth={baseWidth}
+              setCurrentPage={setCurrentPage}
             />
           </div>
         </div>

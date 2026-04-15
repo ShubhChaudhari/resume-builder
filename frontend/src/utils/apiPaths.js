@@ -19,5 +19,9 @@ export const API_PATHS = {
 
   IMAGE: {
     UPLOAD_IMAGE: "api/auth/upload-image",
+  },
+
+  AI: {
+    GENERATE_AI: "api/ai/generate",
   }
 };

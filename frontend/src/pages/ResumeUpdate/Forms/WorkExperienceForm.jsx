@@ -1,8 +1,19 @@
 import React from "react";
 import Input from "../../../components/inputs/Input";
-import { LuTrash2, LuPlus } from "react-icons/lu";
+import { LuTrash2, LuPlus, LuSparkles } from "react-icons/lu";
+import useAIEnhance from "../../../hooks/useAIEnhance";
 
 const WorkExperienceForm = ({ workExperienceInfo, updateArrayItem, addArrayItem, removeArrayItem }) => {
+  const { enhanceWithAI, isGenerating } = useAIEnhance();
+
+  const handleAIEnhance = (index) => {
+    enhanceWithAI(
+      "experience",
+      { role: workExperienceInfo[index]?.role }, // ✅ just role
+      (result) => updateArrayItem(index, "description", result)
+    );
+  };
+
   return (
     <div className="px-5 pt-5">
       <h2 className="text-lg font-semibold text-gray-900">
@@ -55,10 +66,22 @@ const WorkExperienceForm = ({ workExperienceInfo, updateArrayItem, addArrayItem,
               />
             </div>
 
-            <div className="mt-4">
-              <label className="text-xs font-medium text-slate-600">
+            <div className="col-span-2 mt-4">
+              <div className="flex items-center justify-between mb-1">
+              <label className="text-xs text-[13px] text-slate-600">
                 Description
               </label>
+                <button
+                                    className="btn-small-light"
+                                    onClick={() => handleAIEnhance(index)}
+                                    disabled={isGenerating}
+                                  >
+                                    <LuSparkles className="text-[15px]" />
+                                    <span className="hidden md:block">
+                                      {isGenerating ? "Enhancing..." : "AI Enhance"}
+                                    </span>
+                                  </button>
+              </div>
               <textarea
                 placeholder="What did you do in this role?"
                 className="form-input w-full mt-1"
