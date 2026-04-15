@@ -12,8 +12,8 @@ const storage = new CloudinaryStorage({
   cloudinary,
   params: {
     folder: "resume-builder",        // folder name in your Cloudinary account
-    allowed_formats: ["jpg", "jpeg", "png"],
-    transformation: [{ quality: "auto" }], // auto optimize
+    // allowed_formats: ["jpg", "jpeg", "png"],
+    transformation: [{ quality: "auto", fetch_format: "auto" }], // auto optimize
   },
 });
 
