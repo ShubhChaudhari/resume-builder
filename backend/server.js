@@ -6,6 +6,7 @@ const path = require("path");
 const connectDB = require('./config/db');
 const authRoutes = require('./routes/auth.route');
 const resumeRoutes = require('./routes/resume.route');
+const aiRoutes = require('./routes/ai.routes');
 
 const app = express();
 
@@ -27,6 +28,7 @@ app.use(express.json());
 //Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/resume", resumeRoutes);
+app.use("/api/ai", aiRoutes);
 
 
 //Server uploads folder

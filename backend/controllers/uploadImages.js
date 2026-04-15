@@ -118,7 +118,7 @@ const uploadResumeImages = async (req, res) => {
         // Update user profileImageUrl in parallel
         await Promise.all([
           resume.save(),
-          User.findByIdAndUpdate(req.user._id, { profileImageUrl: newProfileUrl }),
+          // User.findByIdAndUpdate(req.user._id, { profileImageUrl: newProfileUrl }),
         ]);
 
       } else {
